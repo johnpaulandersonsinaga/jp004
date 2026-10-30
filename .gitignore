@@ -1,0 +1,16 @@
+# Personal data exports — never commit these
+*.json
+*.csv
+!ref_table.csv
+!demo.json
+
+# Logs and caches
+*.log
+__pycache__/
+*.pyc
+
+# Local environments and backups
+.venv/
+venv/
+*.bak
+*.bak-*

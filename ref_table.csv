@@ -1,0 +1,82 @@
+country,country_code,exchange,mic,suffix_yahoo,prefix_tradingview,currency,currency_symbol
+ARGENTINA,AR,Bolsa de Comercio de Buenos Aires,XBCB,,BCBA:,ARS,$
+AUSTRALIA,AU,Australian Securities Exchange,XASX,.AX,ASX:,AUD,A$
+AUSTRIA,AT,Wiener Börse,XWBO,,VIE:,EUR,€
+BAHRAIN,BH,Bahrain Bourse,XBAH,,BAHRAIN:,BHD,.د.ب
+BANGLADESH,BD,Dhaka Stock Exchange,XDHA,,DSEBD:,BDT,৳
+BELGIUM,BE,Euronext Brussels,XBRU,,EURONEXT:,EUR,€
+BRAZIL,BR,B3 - Brasil Bolsa Balcao,BVMF,.SA,BMFBOVESPA:,BRL,R$
+BULGARIA,BG,Bulgarian Stock Exchange,XBUL,,BSESOF:,BGN,лв
+CANADA,CA,Toronto Stock Exchange,XTSE,.TO,TSX:,CAD,C$
+CANADA,CA,TSX Venture Exchange,XTSX,.V,TSXV:,CAD,C$
+CANADA,CA,Canadian Securities Exchange,XCNQ,.CN,CSE:,CAD,C$
+CHILE,CL,Bolsa de Santiago,XSGO,,BCS:,CLP,$
+CHINA,CN,Shanghai Stock Exchange,XSHG,.SS,SSE:,CNY,RMB
+CHINA,CN,Shenzhen Stock Exchange,XSHE,.SZ,SZSE:,CNY,RMB
+COLOMBIA,CO,Bolsa de Valores de Colombia,XBOG,,BVC:,COP,$
+CROATIA,HR,Zagreb Stock Exchange,XZAG,,ZSE:,EUR,€
+CYPRUS,CY,Cyprus Stock Exchange,XCYS,,CSECY:,EUR,€
+CZECH,CZ,Prague Stock Exchange,XPRA,,PSECZ:,CZK,Kč
+DENMARK,DK,Nasdaq Copenhagen,XCSE,,OMXCOP:,DKK,kr
+EGYPT,EG,Egyptian Exchange,XEGX,,EGX:,EGP,E£
+ESTONIA,EE,Nasdaq Tallinn,XTAL,,OMXTSE:,EUR,€
+FINLAND,FI,Nasdaq Helsinki,XHEL,,OMXHEX:,EUR,€
+FRANCE,FR,EURONEXT Paris,XPAR,.PA,EURONEXT:,EUR,€
+GERMANY,DE,Xetra,XETR,.DE,XETR:,EUR,€
+GREECE,GR,Athens Stock Exchange,XATH,,ATHEX:,EUR,€
+HONGKONG,HK,Hong Kong Exchange,XHKG,.HK,HKEX:,HKD,HK$
+HUNGARY,HU,Budapest Stock Exchange,XBUD,,BET:,HUF,Ft
+ICELAND,IS,Nasdaq Iceland,XICE,,OMXICE:,ISK,kr
+INDIA,IN,National Stock Exchange of India,XNSE,.NS,NSE:,INR,₹
+INDIA,IN,Bombay Stock Exchange,XBOM,.BO,BSE:,INR,₹
+INDONESIA,ID,Indonesia Stock Exchange,XIDX,.JK,IDX:,IDR,Rp
+IRELAND,IE,Euronext Dublin,XDUB,,EURONEXT:,EUR,€
+ISRAEL,IL,Tel Aviv Stock Exchange,XTAE,.TA,TASE:,ILS,₪
+ITALY,IT,Borsa Italiana / Milan Stock Exchange,XMIL,.MI,MIL:,EUR,€
+JAPAN,JP,Tokyo Stock Exchange,XTKS,.T,TSE:,JPY,¥
+KENYA,KE,Nairobi Securities Exchange,XNAI,,NSEKE:,KES,KSh
+KUWAIT,KW,Boursa Kuwait,XKUW,,KSE:,KWD,د.ك
+LATVIA,LV,Nasdaq Riga,XRIS,,OMXRSE:,EUR,€
+LITHUANIA,LT,Nasdaq Vilnius,XLIT,,OMXVSE:,EUR,€
+LUXEMBOURG,LU,Luxembourg Stock Exchange,XLUX,,LUXSE:,EUR,€
+MALAYSIA,MY,Bursa Malaysia,XKLS,.KL,MYX:,MYR,RM
+MEXICO,MX,Mexican Stock Exchange,XMEX,.MX,BMV:,MXN,Mex$
+MOROCCO,MA,Casablanca Stock Exchange,XCAS,,CSEMA:,MAD,د.م.
+NETHERLANDS,NL,EURONEXT Amsterdam,XAMS,.AS,EURONEXT:,EUR,€
+NEW ZEALAND,NZ,New Zealand Exchange,XNZE,,NZX:,NZD,NZ$
+NIGERIA,NG,Nigerian Exchange,XNSA,,NSENG:,NGN,₦
+NORWAY,NO,Oslo Bors,XOSL,.OL,OSL:,NOK,kr
+PAKISTAN,PK,Pakistan Stock Exchange,XPAK,,PSX:,PKR,Rs
+PERU,PE,Bolsa de Valores de Lima,XLIM,,BVL:,PEN,S/
+PHILIPIPINES,PH,Philippine Stock Exchange,XPHS,.PS,PSE:,PHP,₱
+POLAND,PL,Warsaw Stock Exchange,XWAR,.WA,GPW:,PLN,zł
+PORTUGAL,PT,Euronext Lisbon,XLIS,,EURONEXT:,EUR,€
+QATAR,QA,Qatar Stock Exchange,XQAT,,QSE:,QAR,ر.ق
+ROMANIA,RO,Bursa de Valori București,XBSE,,BVB:,RON,lei
+RUSSIA,RU,Moscow Exchange,MISX,.ME,RUS:,RUB,₽
+SAUDI ARABIA,SA,Saudi Exchange,XSAU,.SR,TADAWUL:,SAR,ر.س
+SERBIA,RS,Belgrade Stock Exchange,XBEL,,BELEX:,RSD,Дин
+SINGAPORE,SG,Singapore Exchange,XSES,.SI,SGX:,SGD,S$
+SLOVENIA,SI,Ljubljana Stock Exchange,XLJU,,LJSE:,EUR,€
+SOUTH AFRICA,ZA,Johannesburg Stock Exchange,XJSE,.JO,JSE:,ZAR,R
+SOUTH KOREA,KR,Korea Exchange - KOSPI,XKRX,.KS,KRX:,KRW,₩
+SOUTH KOREA,KR,Korea Exchange - KOSDAQ,XKOS,.KQ,KRX:,KRW,₩
+SPAIN,ES,Bolsa de Madrid,XMAD,.MC,BME:,EUR,€
+SRI LANKA,LK,Colombo Stock Exchange,XCOL,,CSELK:,LKR,Rs
+SWEDEN,SE,Nasdaq Stockholm,XSTO,.ST,OMXSTO:,SEK,kr
+SWEDEN,SE,Nordic Growth Market,XNGM,.ST,NGM:,SEK,kr
+SWITZERLAND,CH,SIX Swiss Exchange,XSWX,.SW,SIX:,CHF,Fr.
+TAIWAN,TW,Taiwan Stock Exchange,XTAI,.TW,TWSE:,TWD,NT$
+TAIWAN,TW,Taipei Exchange,ROCO,.TWO,TPEX:,TWD,NT$
+THAILAND,TH,Stock Exchange of Thailand,XBKK,.BK,SET:,THB,฿
+TUNISIA,TN,Bourse de Tunis,XTUN,,BVMT:,TND,د.ت
+TÜRKİYE,TR,Borsa Istanbul,XIST,.IS,BIST:,TRY,₺
+UNITED ARAB EMIRATES,AE,Abu Dhabi Securities Exchange,XADS,,ADX:,AED,د.إ
+UNITED ARAB EMIRATES,AE,Dubai Financial Market,XDFM,,DFM:,AED,د.إ
+UNITED KINGDOM,GB,London Stock Exchange,XLON,.L,LSE:,GBP,£
+UNITED STATES,US,NYSE,XNYS,,NYSE:,USD,US$
+UNITED STATES,US,NASDAQ,XNAS,,NASDAQ:,USD,US$
+VENEZUELA,VE,Bolsa de Valores de Caracas,XCAR,,BVCV:,VES,Bs
+VIETNAM,VN,Hanoi Stock Exchange,XHNX,.VN,HNX:,VND,₫
+VIETNAM,VN,Ho Chi Minh City Stock Exchange,XSTC,.VN,HOSE:,VND,₫
+VIETNAM,VN,Unlisted Public Company Market,HNXU,.VN,UPCOM:,VND,₫
