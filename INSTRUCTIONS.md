@@ -25,9 +25,9 @@ stores trades.
 | App file | `jp004.html` |
 | Server file | `server.py` |
 | Runtime (VM) | `~/workspace/jp004-venv/bin/python` |
-| Port | `28633` |
-| Browser URL | `http://127.0.0.1:28633/` |
-| Health endpoint | `http://127.0.0.1:28633/api/health` |
+| Port | `28634` |
+| Browser URL | `http://127.0.0.1:28634/` |
+| Health endpoint | `http://127.0.0.1:28634/api/health` |
 | Log (VM) | `~/workspace/jp004-server-run-vm.log` |
 
 On another machine, replace the VM paths with the local checkout path.
@@ -44,7 +44,7 @@ data.
    user explicitly orders it.
 2. **Never change the origin.** Browser data is keyed by origin
    (`scheme://host:port`). If the URL changes, the journal appears
-   empty. Keep `http://127.0.0.1:28633/` exactly.
+   empty. Keep `http://127.0.0.1:28634/` exactly.
 3. **Never delete user data.** Never delete trade, export, or backup
    files without an explicit user order naming the file.
 4. **Backup before every change.** Copy the file or folder first,
@@ -70,7 +70,7 @@ data.
 ### 1. Check whether the server is already running
 
 ```bash
-curl -s -m 5 http://127.0.0.1:28633/api/health
+curl -s -m 5 http://127.0.0.1:28634/api/health
 ```
 
 - If it answers `{"status": "ok"}`, the server is running. Do not
@@ -84,10 +84,10 @@ cd ~/workspace/jp004
 nohup setsid ~/workspace/jp004-venv/bin/python server.py \
   > ~/workspace/jp004-server-run-vm.log 2>&1 < /dev/null & disown
 sleep 5
-curl -s -m 5 http://127.0.0.1:28633/api/health
+curl -s -m 5 http://127.0.0.1:28634/api/health
 ```
 
-If port 28633 is already in use, the server selects the next free
+If port 28634 is already in use, the server selects the next free
 port and prints the actual URL in the log. In that case, do not
 silently accept the new port: report it, because the browser origin
 will differ and the journal will appear empty. Resolve the port
@@ -96,8 +96,8 @@ conflict first.
 ### 3. Verify the app
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:28633/
-curl -s http://127.0.0.1:28633/ | grep -o "<title>[^<]*</title>" | head -1
+curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:28634/
+curl -s http://127.0.0.1:28634/ | grep -o "<title>[^<]*</title>" | head -1
 ```
 
 Expected: HTTP `200` and `<title>jp004</title>`.
@@ -110,14 +110,14 @@ device:
 
 ```bash
 ssh -i ~/.ssh/id_vps -p 2222 -N \
-  -L 28633:localhost:28633 localbug@localhost
+  -L 28634:localhost:28634 localbug@localhost
 ```
 
 Run it detached (`nohup setsid ... & disown`) and verify from that
 device:
 
 ```bash
-curl -s -m 5 http://127.0.0.1:28633/api/health
+curl -s -m 5 http://127.0.0.1:28634/api/health
 ```
 
 Do not change the browser URL to reach the server directly. A
@@ -163,7 +163,7 @@ Only on the user's explicit order:
 
 ```bash
 pkill -f "jp004-venv/bin/python server.py"
-curl -s -m 5 http://127.0.0.1:28633/api/health || echo "server stopped"
+curl -s -m 5 http://127.0.0.1:28634/api/health || echo "server stopped"
 ```
 
 Confirm the health endpoint no longer answers before reporting the
@@ -174,9 +174,9 @@ server as stopped.
 | Symptom | Likely cause | Fix |
 | --- | --- | --- |
 | Health check fails | Server not running | Start once (step 2), check the log |
-| Health ok, browser empty | Origin changed | Restore `http://127.0.0.1:28633/` via forward, do not use a new URL |
+| Health ok, browser empty | Origin changed | Restore `http://127.0.0.1:28634/` via forward, do not use a new URL |
 | Browser shows the old page | Browser cache | Close and reopen the tab, or hard refresh |
-| Port conflict on start | Another process on 28633 | Identify it, stop the duplicate if it is jp004, otherwise report it |
+| Port conflict on start | Another process on 28634 | Identify it, stop the duplicate if it is jp004, otherwise report it |
 | Price refresh fails | TradingView scanner unavailable | Retry once later; do not hammer the endpoint |
 | `ref_table.csv` change not visible | Server not restarted | Restart the server (step 2) |
 

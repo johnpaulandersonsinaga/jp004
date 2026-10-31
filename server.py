@@ -1,5 +1,7 @@
 import os
 import sys
+import json
+import sqlite3
 import csv
 import socket
 import platform
@@ -15,7 +17,8 @@ from flask import Flask, request, jsonify, send_from_directory
 import requests
 
 HOST = '127.0.0.1'
-PORT = 28633
+PORT = 28634
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'jp004.db')
 HTML_FILE = 'jp004.html'
 AUTO_OPEN_BROWSER = True
 MAX_WAIT_SECONDS = 15
@@ -65,6 +68,35 @@ SCANNER_SLUGS = {
 }
 
 def load_ref_table():
+    # DB first: ref_table table in jp004.db (inserted from ref_table.csv).
+    # CSV fallback keeps the server working on a fresh DB without that table.
+    try:
+        if os.path.exists(DB_PATH):
+            con = sqlite3.connect(DB_PATH)
+            try:
+                db_rows = con.execute(
+                    'SELECT country, country_code, exchange, mic, suffix_yahoo, '
+                    'prefix_tradingview, currency, currency_symbol FROM ref_table'
+                ).fetchall()
+            finally:
+                con.close()
+            if db_rows:
+                ref = {}
+                for country, _cc, _exch, mic, _suffix, prefix, ccy, _sym in db_rows:
+                    mic = (mic or '').strip().upper()
+                    if not mic:
+                        continue
+                    country_u = (country or '').strip().upper()
+                    ref[mic] = {
+                        'prefix': (prefix or '').strip(),
+                        'slug': SCANNER_SLUGS.get(country_u, country_u.lower().replace(' ', '')),
+                        'currency': (ccy or '').strip(),
+                    }
+                if ref:
+                    print(f'  ref_table loaded from DB: {len(ref)} exchanges')
+                    return ref
+    except Exception as e:
+        print(f'  ref_table DB read failed ({e}), falling back to CSV')
     path = os.path.join(BASE_DIR, 'ref_table.csv')
     ref = {}
     if not os.path.exists(path):
@@ -247,6 +279,172 @@ def wait_for_server_and_open(open_url, health_check_url, max_wait=MAX_WAIT_SECON
 
     print(f'  ⚠️  Failed to open the browser automatically.')
     print(f'  ➜  Open manually in your browser: {open_url}')
+
+
+# ============================================================
+# jp004 SQLite storage (revision: live load/save via .db, not JSON file)
+# ============================================================
+TRADE_COLS = ['id','seq','date','ticker','mic','action','sub_action','dest_ticker',
+  'qty','price','fee_pct','currency','amount','fx_to_idr','label',
+  'linked_exercise_id','consolidated_into','merged_from','is_split',
+  'split_from','split_ratio','split_date']
+JS_TO_DB = {'id':'id','seq':'seq','date':'date','ticker':'ticker','mic':'mic',
+  'action':'action','subAction':'sub_action','destTicker':'dest_ticker','qty':'qty',
+  'price':'price','feePct':'fee_pct','currency':'currency','amount':'amount',
+  'fxToIDR':'fx_to_idr','label':'label','linkedExerciseId':'linked_exercise_id',
+  'consolidatedInto':'consolidated_into','mergedFrom':'merged_from',
+  'isSplit':'is_split','splitFrom':'split_from','splitRatio':'split_ratio',
+  'splitDate':'split_date'}
+DB_TO_JS = {v:k for k,v in JS_TO_DB.items()}
+
+def db_conn():
+    con = sqlite3.connect(DB_PATH)
+    con.row_factory = sqlite3.Row
+    con.execute('PRAGMA journal_mode=WAL')
+    con.execute('PRAGMA synchronous=NORMAL')
+    con.execute('PRAGMA foreign_keys=ON')
+    return con
+
+def init_db():
+    schema_path = os.path.join(BASE_DIR, 'schema.sql')
+    con = db_conn()
+    try:
+        if os.path.exists(schema_path):
+            with open(schema_path, 'r', encoding='utf-8') as f:
+                con.executescript(f.read())
+        con.commit()
+    finally:
+        con.close()
+
+def trade_to_dict(row):
+    d = {}
+    for col in TRADE_COLS:
+        v = row[col]
+        if col == 'merged_from':
+            d['mergedFrom'] = json.loads(v) if v else None
+        elif col == 'is_split':
+            d['isSplit'] = bool(v) if v is not None else None
+        else:
+            d[DB_TO_JS[col]] = v
+    # drop None optional keys to match JS shape closely, keep required ones
+    return {k: v for k, v in d.items() if v is not None or k in ('id','seq','date','action')}
+
+def load_state_from_db():
+    con = db_conn()
+    try:
+        trades = [trade_to_dict(r) for r in con.execute(
+            'SELECT * FROM trades ORDER BY date, seq')]
+        pairs = []
+        for r in con.execute('SELECT * FROM hedge_pairs'):
+            pairs.append({'id': r['id'], 'buyId': r['buy_id'], 'sellId': r['sell_id'],
+                          'qty': r['qty'], 'remBuyId': r['rem_buy_id'], 'remSellId': r['rem_sell_id']})
+        meta = {r['key']: r['value'] for r in con.execute('SELECT key, value FROM meta')}
+        prices = {}
+        for r in con.execute('SELECT symbol, entry_json, price FROM price_cache'):
+            if r['entry_json']:
+                try: prices[r['symbol']] = json.loads(r['entry_json']); continue
+                except Exception: pass
+            prices[r['symbol']] = {'price': r['price']}
+        fx = {}
+        try: fx = json.loads(meta.get('fx', '{}'))
+        except Exception: fx = {}
+        return {
+            'trades': trades, 'hedgePairs': pairs,
+            'buyFeePct': float(meta.get('buy_fee_pct', '0.15')),
+            'sellFeePct': float(meta.get('sell_fee_pct', '0.25')),
+            'nextSeq': int(meta.get('next_seq', '1')),
+            'baseCurrency': meta.get('base_currency', 'IDR'),
+            'fxToIDR': fx.get('rates', {}), 'fxMeta': fx.get('meta', {}),
+            'prices': prices,
+        }
+    finally:
+        con.close()
+
+def save_state_to_db(data):
+    con = db_conn()
+    try:
+        con.execute('BEGIN')
+        con.execute('DELETE FROM trades')
+        con.execute('DELETE FROM hedge_pairs')
+        con.execute('DELETE FROM price_cache')
+        for tr in data.get('trades', []):
+            vals = []
+            for col in TRADE_COLS:
+                js = DB_TO_JS[col]
+                v = tr.get(js)
+                if col == 'merged_from':
+                    v = json.dumps(v) if v is not None else None
+                elif col == 'is_split':
+                    v = 1 if v else 0
+                vals.append(v)
+            con.execute('INSERT INTO trades (%s) VALUES (%s)' % (
+                ','.join(TRADE_COLS), ','.join('?'*len(TRADE_COLS))), vals)
+        for pr in data.get('hedgePairs', []):
+            con.execute('INSERT INTO hedge_pairs (id, buy_id, sell_id, qty, rem_buy_id, rem_sell_id) VALUES (?,?,?,?,?,?)',
+                        (pr.get('id'), pr.get('buyId'), pr.get('sellId'), pr.get('qty'), pr.get('remBuyId'), pr.get('remSellId')))
+        for sym, entry in (data.get('prices') or {}).items():
+            price = entry.get('price') if isinstance(entry, dict) else None
+            con.execute('INSERT INTO price_cache (symbol, price, entry_json) VALUES (?,?,?)',
+                        (sym, price, json.dumps(entry) if isinstance(entry, dict) else None))
+        meta = {
+            'buy_fee_pct': str(data.get('buyFeePct', 0.15)),
+            'sell_fee_pct': str(data.get('sellFeePct', 0.25)),
+            'next_seq': str(data.get('nextSeq', 1)),
+            'base_currency': str(data.get('baseCurrency', 'IDR')),
+            'fx': json.dumps({'rates': data.get('fxToIDR', {}), 'meta': data.get('fxMeta', {})}),
+        }
+        for k, v in meta.items():
+            con.execute('INSERT OR REPLACE INTO meta (key, value) VALUES (?,?)', (k, v))
+        con.commit()
+        return len(data.get('trades', []))
+    except Exception:
+        con.rollback()
+        raise
+    finally:
+        con.close()
+
+init_db()
+
+@app.route('/api/db/health')
+def api_db_health():
+    st = load_state_from_db()
+    return jsonify({'status': 'ok', 'db': os.path.basename(DB_PATH),
+                    'exists': os.path.exists(DB_PATH),
+                    'trade_count': len(st['trades'])})
+
+@app.route('/api/db/state')
+def api_db_state():
+    return jsonify(load_state_from_db())
+
+@app.route('/api/db/trades')
+def api_db_trades():
+    try:
+        page = max(1, int(request.args.get('page', '1')))
+        per_page = max(1, min(500, int(request.args.get('per_page', '50'))))
+    except ValueError:
+        page, per_page = 1, 50
+    st = load_state_from_db()
+    trades = st['trades']
+    action = request.args.get('action')
+    ticker = request.args.get('ticker')
+    if action and action != 'ALL':
+        trades = [t for t in trades if t.get('action') == action]
+    if ticker:
+        trades = [t for t in trades if (t.get('ticker') or '').upper() == ticker.upper()]
+    total = len(trades)
+    start = (page - 1) * per_page
+    return jsonify({'items': trades[start:start+per_page], 'total': total,
+                    'page': page, 'per_page': per_page,
+                    'total_pages': (total + per_page - 1)//per_page if total else 0})
+
+@app.route('/api/db/save', methods=['POST'])
+def api_db_save():
+    data = request.get_json(force=True, silent=True) or {}
+    if not isinstance(data.get('trades'), list):
+        return jsonify({'error': 'trades must be a list'}), 400
+    n = save_state_to_db(data)
+    return jsonify({'status': 'ok', 'saved_trades': n})
+
 
 if __name__ == '__main__':
     if not os.path.exists(os.path.join(BASE_DIR, HTML_FILE)):

@@ -14,3 +14,9 @@ __pycache__/
 venv/
 *.bak
 *.bak-*
+
+# SQLite database for jp004 revision — never commit
+*.db
+*.db-wal
+*.db-shm
+jp004.db
