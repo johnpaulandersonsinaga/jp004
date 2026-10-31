@@ -21,5 +21,3 @@ venv/
 *.db-shm
 jp004.db
 
-# Exception: the fictional demo database is published on purpose
-!demo.db
