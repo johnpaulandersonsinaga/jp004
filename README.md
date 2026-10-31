@@ -194,11 +194,13 @@ Notes:
 
 ## Try it in two minutes
 
-A fictional sample portfolio is included as `demo.json` (301 trades,
-for illustration only, in the app's JSON export format). It is not
-loaded automatically: the database edition starts empty, and the
-sample is there to inspect and to import in file mode. Otherwise,
-start with your own first entries:
+A fictional sample database is included as `demo.db` (301 trades,
+for illustration only). It is not loaded automatically: the database
+edition starts empty. To try the demo, use a separate copy of this
+repository — never your real journal folder — copy `demo.db` to
+`jp004.db` there, start the server, and use **Load from DB**. Do
+not copy `demo.db` over a real `jp004.db`; that would replace your
+journal. Otherwise, start with your own first entries:
 
 1. Start the server (see [Getting started](#getting-started)) and
    open `http://127.0.0.1:28634/`.
@@ -212,7 +214,7 @@ That is the whole loop: enter trades, refresh prices, save often.
 
 ## Screenshots
 
-All screenshots below show the fictional `demo.json` portfolio, not a
+All screenshots below show the fictional demo portfolio, not a
 real portfolio.
 
 ### Performance summary and active positions
@@ -329,6 +331,10 @@ with the journal. They apply to newly entered trades only.
   reference table, and is created from `schema.sql` on first run
   if it does not exist yet. It is ignored by git (see
   `.gitignore`) and is never part of this repository.
+- The one database exception is `demo.db`: a fictional sample
+  (301 trades, verified to have no overlap with any real journal)
+  published so anyone can try the app. Your own `jp004.db` is
+  never committed.
 - When the server is unavailable, the app falls back to the
   browser's `localStorage`, under keys such as `tj_trades_v4`,
   `tj_pairs_v4`, `tj_fx_v4`, `tj_fees_v4`, and `tj_nextseq_v4`.
@@ -341,7 +347,7 @@ with the journal. They apply to newly entered trades only.
   (`http://127.0.0.1:28634/` by default) to keep it visible.
 - Personal export files (for example dated trade JSON or CSV files)
   are not part of this repository, with one exception: the fictional
-  `demo.json` sample. See `.gitignore`.
+  `demo.db` sample. See `.gitignore`.
 
 ## Project structure
 
@@ -355,7 +361,7 @@ jp004/
 ├── ref_table.csv     # Exchange reference: 127 exchanges (MIC, country,
 │                     # TradingView prefix, currency)
 ├── requirements.txt  # Flask, requests
-├── demo.json         # Fictional sample portfolio (301 trades) for trying the app
+├── demo.db           # Fictional sample database (301 trades) for trying the app
 ├── screenshots/      # App screenshots (demo data)
 ├── README.md         # This file
 ├── LICENSE           # Apache License 2.0
