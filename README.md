@@ -366,7 +366,6 @@ jp004/
 ├── README.md         # This file
 ├── LICENSE           # Apache License 2.0
 ├── INSTRUCTIONS.md   # Agent runbook: local setup and maintenance
-├── RANCANGAN-SQLITE.md  # Design notes for the SQLite migration (Indonesian)
 └── .gitignore        # Excludes personal data exports, databases, and logs
 ```
 
