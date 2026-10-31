@@ -3,21 +3,25 @@
 ![Python 3.12](https://img.shields.io/badge/python-3.12-blue)
 ![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)
 ![No build step](https://img.shields.io/badge/build-none-lightgrey)
-![Local first](https://img.shields.io/badge/data-localStorage-green)
+![Local first](https://img.shields.io/badge/data-SQLite-blue)
 
 A personal, global investment terminal for tracking stocks, cash
 flows, dividends, fees, and derivatives across multiple markets and
 currencies.
 
-jp004 runs entirely in your browser. There is no account, no cloud
-database, and no order execution. A small local Python server serves
-the app and proxies live market prices. Your trade data stays in your
-own browser unless you explicitly export it.
+jp004 runs entirely on your own machine. There is no account, no
+cloud database, and no order execution. A small local Python server
+serves the app, proxies live market prices, and stores your journal
+in a local SQLite file (`jp004.db`) next to `server.py`. Your trade
+data never leaves your machine unless you explicitly export it.
+When the server is unavailable, the app falls back to the browser's
+`localStorage` (see [Data and privacy](#data-and-privacy)).
 
 ## Contents
 
 - [Is jp004 for you?](#is-jp004-for-you)
 - [Features](#features)
+- [Coverage](#coverage)
 - [Try it in two minutes](#try-it-in-two-minutes)
 - [Screenshots](#screenshots)
 - [Getting started](#getting-started)
@@ -57,10 +61,13 @@ or a hosted account. jp004 deliberately does none of those.
 ### Portfolio overview
 
 - Performance summary: balance, invested capital, total equity,
-  unrealized P&L, realized P&L, and XIRR.
+  unrealized P&L, realized P&L, and XIRR, shown as plain figures
+  without boxed cards.
 - Multi-currency positions with a selectable reporting currency and
   editable exchange rates.
-- Light and dark themes.
+- Light and dark themes, switched from the sun/moon switch at the
+  top right of the summary. The switch shows both options inside
+  its track, and the choice is remembered per browser.
 
 ### Trade journal
 
@@ -99,41 +106,109 @@ or a hosted account. jp004 deliberately does none of those.
 
 ### Prices and exchange rates
 
-- **Refresh Prices:** fetches current prices from the TradingView
-  scanner for all active positions.
-- **Refresh FX / Exchange Rates:** refreshes and edits the currency
-  rates used to convert positions into the reporting currency.
+- **Refresh Prices:** one button that does both jobs, in order:
+  it fetches current prices from the TradingView scanner for all
+  active positions, then refreshes currency rates. The separate
+  **Refresh FX** button no longer exists; it was merged into
+  **Refresh Prices**.
+- **Exchange Rates:** shows or hides the exchange-rate grid. The
+  grid lists only the currencies you chose in Display preferences,
+  plus the reporting currency; other saved rates are kept for
+  calculations but not shown.
+- Stablecoin rates (USDT, USDC, DAI) are refreshed from their
+  TradingView pegs against USD, multiplied by the USD/IDR rate,
+  and saved with the other rates.
 - Broker fee defaults are Buy 0.15% and Sell 0.25%. Fee changes apply
   to new trades only; historical trades keep their original fee
   snapshot.
 
+### Settings panel
+
+- **⚙ Settings:** a full-width button that shows or hides the
+  whole settings area (Broker Fees, the action buttons, and the
+  exchange-rate grid). It starts hidden on first run; the choice
+  is remembered per browser. The old chevron-only toggle is gone;
+  the button now reads **Settings** with a gear icon.
+
+### Display preferences (Customize)
+
+- **Customize:** opens a panel where you choose exactly which
+  currencies and which exchanges are shown. The panel has search
+  boxes, All/None shortcuts, **Save preferences**, and
+  **Reset to default**.
+- What the choice filters: the Exchange dropdown, the cash
+  dropdowns, the Reporting Currency dropdown, and the exchange-rate
+  grid. Trades in hidden currencies or on hidden exchanges keep
+  counting; they are only hidden from those lists.
+- Defaults for a new browser: currencies **IDR, USD, USDT** and
+  exchanges **BINANCE, XIDX, XNAS, XNYS**. Use **Reset to default**
+  to return to them.
+- Preferences are stored per browser (`localStorage`), not in
+  `jp004.db`, so they do not travel with a database copy. Each
+  browser (and each port/origin) keeps its own choice.
+
 ### Import, export, and printing
 
-- **Save File:** exports the full journal as a JSON file.
-- **Load File:** imports a JSON or Excel (.xlsx) journal. Loading
-  replaces the entire current journal, including pairs, so export a
-  backup first.
+- **Save to DB / Load from DB:** in normal server mode the
+  Save and Load buttons work against the SQLite database
+  (`/api/db/save` and `/api/db/state`, transactional). Loading
+  replaces the entire current journal, including pairs, so save
+  a backup first.
+- **Save File / Load File:** when the server is unavailable, the
+  same buttons fall back to files — **Save File** exports the
+  full journal as JSON, **Load File** imports a JSON or Excel
+  (.xlsx) journal.
 - **Print / Download:** print or download the positions and trades
   tables from the main view.
 - **Reset All:** clears all local data. This cannot be undone except
   by loading a previously exported file.
 
+## Coverage
+
+All figures below are counted from `ref_table.csv` in this
+repository, not estimated. Coverage means markets listed in the
+reference table; it is not a fixed count of individual tickers —
+any ticker listed on one of these exchanges can be tracked, with
+prices fetched per ticker from the TradingView scanner.
+
+| What | Count |
+| --- | --- |
+| Countries (stock markets) | 70 |
+| Stock exchanges | 81 |
+| Crypto exchanges (centralized, CEX) | 46 |
+| Exchanges in total (`ref_table.csv` rows) | 127 |
+| Currencies with exchange rates | 53 |
+
+Notes:
+
+- Crypto coverage is centralized exchanges only; decentralized
+  exchanges (DEX) are not included. Crypto rows carry no single
+  currency in the reference table because one exchange lists many
+  quote currencies.
+- Crypto tickers must be full pairs, for example `BTCUSDT`, not
+  `BTC` alone. The quote currency of the pair (USDT, USDC, and so
+  on) is what prices and cash are converted with.
+- The 53 currencies are the ones with stored exchange rates
+  (`fxToIDR`). Stablecoins USDT, USDC, and DAI are included in
+  the currency choice and refreshed from their USD pegs.
+
 ## Try it in two minutes
 
 A fictional sample portfolio is included as `demo.json` (301 trades,
-2024–2026, for illustration only). To try the app without entering
-your own trades, open the app and use **Load File** to load `demo.json`,
-then explore positions, pairs, and performance. Otherwise, start with
-your own first entries:
+for illustration only, in the app's JSON export format). It is not
+loaded automatically: the database edition starts empty, and the
+sample is there to inspect and to import in file mode. Otherwise,
+start with your own first entries:
 
 1. Start the server (see [Getting started](#getting-started)) and
-   open `http://127.0.0.1:28633/`.
+   open `http://127.0.0.1:28634/`.
 2. Add a DEPOSIT transaction for your starting cash.
 3. Add a BUY transaction for a ticker you hold.
-4. Press **Refresh Prices** to fetch its current price.
-5. Press **Save File** to export your first backup.
+4. Press **Refresh Prices** to fetch its current price and refresh
+   exchange rates.
+5. Press **Save to DB** to save your journal to `jp004.db`.
 
-That is the whole loop: enter trades, refresh prices, export often.
+That is the whole loop: enter trades, refresh prices, save often.
 
 ## Screenshots
 
@@ -165,7 +240,7 @@ real portfolio.
 ### Run the local server
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/johnpaulandersonsinaga/jp004.git
 cd jp004
 python -m venv .venv
 source .venv/bin/activate
@@ -176,18 +251,20 @@ python server.py
 Then open:
 
 ```
-http://127.0.0.1:28633/
+http://127.0.0.1:28634/
 ```
 
-If port 28633 is already in use, the server picks the next free port
+If port 28634 is already in use, the server picks the next free port
 and prints the actual URL on startup. Prefer resolving the port
 conflict over accepting a new port: a different port is a different
-browser origin, and your journal will appear empty (see
+browser origin, and browser-stored data (including display
+preferences) will appear empty (see
 [Data and privacy](#data-and-privacy)).
 
 The journal itself works without the server, but live price and
 exchange-rate refresh require the server to be running, because the
-browser calls its `/api/price` and `/api/prices` endpoints.
+browser calls its `/api/price`, `/api/prices`, and `/api/db/*`
+endpoints.
 
 For agent-assisted setup, maintenance, and troubleshooting, see
 [INSTRUCTIONS.md](INSTRUCTIONS.md).
@@ -218,10 +295,10 @@ untouched. Use **Undo Split** to revert.
 
 ### Backups
 
-Export with **Save File** after every session that changes trades.
-Keep exports outside the browser. Loading a file replaces everything,
-so a backup is the only way back from an unwanted import or a
-**Reset All**.
+Save with **Save to DB** after every session that changes trades,
+and keep a JSON export (**Save File** in file mode) outside the
+app as well. Loading replaces everything, so a backup is the only
+way back from an unwanted import or a **Reset All**.
 
 ## Configuration
 
@@ -233,25 +310,35 @@ Each row maps a market to its TradingView symbol prefix and currency:
 country,country_code,exchange,mic,suffix_yahoo,prefix_tradingview,currency,currency_symbol
 ```
 
-The file covers 81 exchanges. The server loads it once at startup,
-so restart the server after editing it.
+The file covers 127 exchanges: 81 stock exchanges across 70
+countries plus 46 centralized crypto exchanges (see
+[Coverage](#coverage)). The server reads the reference table from
+the database first and falls back to this CSV, and loads it once at
+startup, so restart the server after editing it.
 
 ### Broker fees
 
-Fee defaults are set in the app's Broker Fees section and stored in
-the browser. They apply to newly entered trades only.
+Fee defaults are set in the app's Broker Fees section and stored
+with the journal. They apply to newly entered trades only.
 
 ## Data and privacy
 
-- Trade data is stored only in the browser's `localStorage`, under
-  keys such as `tj_trades_v4`, `tj_pairs_v4`, `tj_fx_v4`,
-  `tj_fees_v4`, and `tj_nextseq_v4`.
-- The server does not store trades. It serves static files and
-  forwards price requests to TradingView.
-- Because data lives in `localStorage`, it is tied to the origin
+- Trade data is stored primarily in the local SQLite file
+  `jp004.db`, in the same folder as `server.py`. It holds the
+  trades, hedge pairs, price cache, exchange rates, fees, and the
+  reference table, and is created from `schema.sql` on first run
+  if it does not exist yet. It is ignored by git (see
+  `.gitignore`) and is never part of this repository.
+- When the server is unavailable, the app falls back to the
+  browser's `localStorage`, under keys such as `tj_trades_v4`,
+  `tj_pairs_v4`, `tj_fx_v4`, `tj_fees_v4`, and `tj_nextseq_v4`.
+  Display preferences, the theme choice, and the collapsed
+  settings panel are always stored per browser in `localStorage`,
+  not in the database, so they do not travel with a database copy.
+- Browser-stored data is tied to the origin
   (`scheme://host:port`). Opening the app at a different host or port
-  will show an empty journal. Keep the URL identical
-  (`http://127.0.0.1:28633/` by default) to keep your data visible.
+  will show empty browser data. Keep the URL identical
+  (`http://127.0.0.1:28634/` by default) to keep it visible.
 - Personal export files (for example dated trade JSON or CSV files)
   are not part of this repository, with one exception: the fictional
   `demo.json` sample. See `.gitignore`.
@@ -261,8 +348,11 @@ the browser. They apply to newly entered trades only.
 ```
 jp004/
 ├── jp004.html        # The single-page app (HTML, CSS, JavaScript)
-├── server.py         # Flask server: static files + price proxy
-├── ref_table.csv     # Exchange reference: 81 exchanges (MIC, country,
+├── server.py         # Flask server: static files, price proxy, SQLite API
+├── schema.sql        # SQLite schema for jp004.db
+├── jp004.db          # Your journal database (created on first run,
+│                     # ignored by git, never committed)
+├── ref_table.csv     # Exchange reference: 127 exchanges (MIC, country,
 │                     # TradingView prefix, currency)
 ├── requirements.txt  # Flask, requests
 ├── demo.json         # Fictional sample portfolio (301 trades) for trying the app
@@ -270,7 +360,8 @@ jp004/
 ├── README.md         # This file
 ├── LICENSE           # Apache License 2.0
 ├── INSTRUCTIONS.md   # Agent runbook: local setup and maintenance
-└── .gitignore        # Excludes personal data exports and logs
+├── RANCANGAN-SQLITE.md  # Design notes for the SQLite migration (Indonesian)
+└── .gitignore        # Excludes personal data exports, databases, and logs
 ```
 
 ## Server endpoints
@@ -281,6 +372,10 @@ jp004/
 | `GET /api/health` | Health check, returns `{"status": "ok"}` |
 | `GET /api/price?ticker=BBCA&mic=XIDX` | Single current price |
 | `POST /api/prices` | Batch current prices for a list of positions |
+| `GET /api/db/health` | Database health check (file, trade count) |
+| `GET /api/db/state` | Full journal state from `jp004.db` |
+| `GET /api/db/trades` | Trades from `jp004.db` (paged) |
+| `POST /api/db/save` | Save the full journal to `jp004.db` (transactional) |
 
 Prices come from the public TradingView scanner and may differ from a
 broker's quoted prices.
